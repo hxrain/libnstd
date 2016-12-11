@@ -11,11 +11,11 @@ public:
   class Client : public Event::Source
   {
   public: // events
-    void failed(void* userData) {}
-    void opened(void* userData) {}
-    void read(void* userData) {}
-    void wrote(void* userData) {}
-    void closed(void* userData) {}
+    void failed() {}
+    void opened() {}
+    void read() {}
+    void wrote() {}
+    void closed() {}
 
   public:
     bool write(const byte* data, usize size, usize* postponed = 0);
@@ -28,17 +28,17 @@ public:
   class Listener : public Event::Source
   {
   public: // events
-    void accepted(void* userData) {}
+    void accepted() {}
 
   public:
-    Client* accept(void* userData, uint32* addr = 0, uint16* port = 0);
+    Client* accept(uint32* addr = 0, uint16* port = 0);
     void close();
   };
 
   class Timer : public Event::Source
   {
   public: // events
-    void activated(void* userData) {}
+    void activated() {}
 
   public:
     void close();
@@ -48,12 +48,12 @@ public:
   Server();
   ~Server();
 
-  Listener* listen(uint16 port, void* userData);
-  Listener* listen(uint32 addr, uint16 port, void* userData);
-  Client* connect(uint32 addr, uint16 port, void* userData);
-  Client* pair(Socket& socket, void* userData);
-  Timer* createTimer(int64 interval, void* userData);
-  Client* accept(Listener& listener, void* userData, uint32* addr = 0, uint16* port = 0);
+  Listener* listen(uint16 port);
+  Listener* listen(uint32 addr, uint16 port);
+  Client* connect(uint32 addr, uint16 port);
+  Client* pair(Socket& socket);
+  Timer* createTimer(int64 interval);
+  Client* accept(Listener& listener, uint32* addr = 0, uint16* port = 0);
 
   bool wait();
   bool interrupt();

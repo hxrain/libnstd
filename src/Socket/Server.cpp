@@ -15,7 +15,6 @@ public:
   {
     clientType,
     timerType,
-    //listenerType,
   };
 
   class HandleSocket : public Socket
@@ -28,9 +27,8 @@ public:
   {
     Private* p;
     HandleSocket socket;
-    void* userData;
 
-    void emit(void (Listener::*signal)(void*), void* userData) {Listener::emit(signal, userData);}
+    void emit(void (Listener::*signal)()) {Listener::emit(signal);}
   };
 
   struct ClientImpl : public Client
@@ -38,17 +36,15 @@ public:
     Private* p;
     HandleSocket socket;
     Buffer sendBuffer;
-    void* userData;
     enum State
     {
       connectingState,
       connectedState,
       suspendedState,
       closingState,
-      //closedState,
     } state;
 
-    void emit(void (Client::*signal)(void*), void* userData) {Client::emit(signal, userData);}
+    void emit(void (Client::*signal)()) {Client::emit(signal);}
   };
 
   struct TimerImpl : public Timer
@@ -56,10 +52,9 @@ public:
     Private* p;
     int64 executionTime;
     int64 interval;
-    void* userData;
     bool active;
 
-    void emit(void (Timer::*signal)(void*), void* userData) {Timer::emit(signal, userData);}
+    void emit(void (Timer::*signal)()) {Timer::emit(signal);}
   };
 
 private:
@@ -83,7 +78,7 @@ public:
     queuedTimers.insert(0, 0); // add default timeout timer
   }
 
-  Listener* listen(uint32 addr, uint16 port, void* userData)
+  Listener* listen(uint32 addr, uint16 port)
   {
     Socket socket;
     if(!socket.open() ||
@@ -95,13 +90,12 @@ public:
     listener.p = this;
     listener.socket.swap(socket);
     listener.socket.handle = &listener;
-    listener.userData = userData;
     sockets.set(listener.socket, Socket::Poll::acceptFlag);
     return &listener;
   }
 
 
-  Client* connect(uint32 addr, uint16 port, void* userData)
+  Client* connect(uint32 addr, uint16 port)
   {
     Socket socket;
     if(!socket.open() ||
@@ -113,12 +107,11 @@ public:
     client.state = ClientImpl::connectingState;
     client.socket.swap(socket);
     client.socket.handle = &client;
-    client.userData = userData;
     sockets.set(client.socket, Socket::Poll::connectFlag);
     return &client;
   }
 
-  Client* pair(Socket& otherSocket, void* userData)
+  Client* pair(Socket& otherSocket)
   {
     Socket socket;
     if(!socket.pair(otherSocket) ||
@@ -136,17 +129,15 @@ public:
     client.state = ClientImpl::connectedState;
     client.socket.swap(socket);
     client.socket.handle = &client;
-    client.userData = userData;
     sockets.set(client.socket, Socket::Poll::readFlag);
     return &client;
   }
 
-  Timer* createTimer(int64 interval, void* userData)
+  Timer* createTimer(int64 interval)
   {
     int64 executionTime = Time::ticks() + interval;
     TimerImpl& timer = timers.append();
     timer.p = this;
-    timer.userData = userData;
     timer.executionTime = executionTime;
     timer.interval = interval;
     queuedTimers.insert(executionTime, &timer);
@@ -169,7 +160,7 @@ public:
           ClientImpl* client = (ClientImpl*)handle;
           ASSERT(client->state == ClientImpl::closingState);
           sockets.remove(client->socket);
-          client->emit(&Client::closed, client->userData);
+          client->emit(&Client::closed);
           break;
         }
       case timerType:
@@ -198,7 +189,7 @@ public:
         {
           timer->active = false;
           closingHandles.insert(timer, timerType);
-          timer->emit(&Timer::activated, timer->userData);
+          timer->emit(&Timer::activated);
           goto start;
         }
         else
@@ -220,7 +211,7 @@ public:
       if(pollEvent.flags & Socket::Poll::readFlag)
       {
         ClientImpl* client = (ClientImpl*)((HandleSocket*)pollEvent.socket)->handle;
-        client->emit(&Client::read, client->userData);
+        client->emit(&Client::read);
         goto start;
       }
       else if(pollEvent.flags & Socket::Poll::writeFlag)
@@ -239,7 +230,7 @@ public:
             client->sendBuffer.free();
             client->state = ClientImpl::closingState;
             sockets.remove(client->socket);
-            client->emit(&Client::closed, client->userData);
+            client->emit(&Client::closed);
             goto start;
           default:
             break;
@@ -253,7 +244,7 @@ public:
             sockets.set(client->socket, Socket::Poll::readFlag);
           else
             sockets.remove(client->socket);
-          client->emit(&Client::wrote, client->userData);
+          client->emit(&Client::wrote);
           goto start;
         }
         continue;
@@ -261,7 +252,7 @@ public:
       else if(pollEvent.flags & Socket::Poll::acceptFlag)
       {
         ListenerImpl* listener = (ListenerImpl*)((HandleSocket*)pollEvent.socket)->handle;
-        listener->emit(&Listener::accepted, listener->userData);
+        listener->emit(&Listener::accepted);
         goto start;
       }
       else if(pollEvent.flags & Socket::Poll::connectFlag)
@@ -274,7 +265,7 @@ public:
           Error::setLastError((uint)error);
           client->state = ClientImpl::closingState;
           sockets.remove(*socket);
-          client->emit(&Client::failed, client->userData);
+          client->emit(&Client::failed);
           goto start;
         }
         else
@@ -286,14 +277,14 @@ public:
           {
             client->state = ClientImpl::closingState;
             sockets.remove(*socket);
-            client->emit(&Client::failed, client->userData);
+            client->emit(&Client::failed);
             goto start;
           }
           else
           {
             client->state = ClientImpl::connectedState;
             sockets.set(*pollEvent.socket, Socket::Poll::readFlag);
-            client->emit(&Client::opened, client->userData);
+            client->emit(&Client::opened);
             goto start;
           }
         }
@@ -318,7 +309,7 @@ public:
   friend class Timer;
 };
 
-Server::Client* Server::Listener::accept(void* userData, uint32* addr, uint16* port)
+Server::Client* Server::Listener::accept(uint32* addr, uint16* port)
 {
   Private::ListenerImpl* listener = (Private::ListenerImpl*)this;
   Private* p = listener->p;
@@ -337,7 +328,6 @@ Server::Client* Server::Listener::accept(void* userData, uint32* addr, uint16* p
   client.state = Private::ClientImpl::connectedState;
   client.socket.swap(socket);
   client.socket.handle = &client;
-  client.userData = userData;
   p->sockets.set(client.socket, Socket::Poll::readFlag);
   return &client;
 }
@@ -463,11 +453,11 @@ void Server::Client::resume()
 
 Server::Server() : p(new Private(*this)) {}
 Server::~Server() {delete p;}
-Server::Listener* Server::listen(uint16 port, void* userData) {return p->listen(Socket::anyAddr, port, userData);}
-Server::Listener* Server::listen(uint32 addr, uint16 port, void* userData) {return p->listen(addr, port, userData);}
-Server::Client* Server::connect(uint32 addr, uint16 port, void* userData) {return p->connect(addr, port, userData);}
-Server::Client* Server::pair(Socket& socket, void* userData) {return p->pair(socket, userData);}
-Server::Timer* Server::createTimer(int64 interval, void* userData) {return p->createTimer(interval, userData);}
+Server::Listener* Server::listen(uint16 port) {return p->listen(Socket::anyAddr, port);}
+Server::Listener* Server::listen(uint32 addr, uint16 port) {return p->listen(addr, port);}
+Server::Client* Server::connect(uint32 addr, uint16 port) {return p->connect(addr, port);}
+Server::Client* Server::pair(Socket& socket) {return p->pair(socket);}
+Server::Timer* Server::createTimer(int64 interval) {return p->createTimer(interval);}
 bool Server::wait() {return p->wait();}
 bool Server::interrupt() {return p->interrupt();}
 void Server::setKeepAlive(bool enable) {return p->setKeepAlive(enable);}
