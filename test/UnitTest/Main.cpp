@@ -662,8 +662,11 @@ int main(int argc, char* argv[])
 {
   Console::printf(_T("%s\n"), _T("Testing..."));
 
+  /*
   testMemory();
+  */
   testServer();
+  /*
   testSignal();
   testMonitor();
   testUnicode();
@@ -698,6 +701,7 @@ int main(int argc, char* argv[])
   testVariant();
   testXML();
   testJSON();
+  */
 
   Console::printf(_T("%s\n"), _T("done"));
 
