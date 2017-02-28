@@ -352,6 +352,9 @@ public:
         if(interrupted)
         {
           interrupted = false;
+          event.handle = 0;
+          event.userData = 0;
+          event.type = Event::interruptType;
           return true;
         }
         continue; // timeout
@@ -439,6 +442,12 @@ public:
     return false;
   }
 
+  bool interrupt()
+  {
+    interrupted = true;
+    return sockets.interrupt();
+  }
+
   void suspend(Handle& handle)
   {
     if(handle.type != Handle::clientType)
@@ -483,6 +492,7 @@ bool Server::write(Handle& handle, const byte* data, usize size, usize* postpone
 bool Server::read(Handle& handle, byte* buffer, usize maxSize, usize& size) {return p->read(handle, buffer, maxSize, size);}
 void Server::close(Handle& handle) {return p->close(handle);}
 bool Server::poll(Event& event) {return p->poll(event);}
+bool Server::interrupt() {return p->interrupt();}
 void Server::suspend(Handle& handle) {return p->suspend(handle);}
 void Server::resume(Handle& handle) {return p->resume(handle);}
 void Server::setKeepAlive(bool enable) {return p->setKeepAlive(enable);}
