@@ -29,6 +29,7 @@ void testDirectory();
 void testMutex();
 void testPoolList();
 void testPoolMap();
+void testSocket();
 void testServer();
 void testMultiMap();
 void testError();
@@ -665,6 +666,7 @@ int main(int argc, char* argv[])
   /*
   testMemory();
   */
+  testSocket();
   testServer();
   /*
   testSignal();
