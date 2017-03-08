@@ -667,9 +667,9 @@ int main(int argc, char* argv[])
 
   testMemory();
   testSha256();
-  /*
   testSocket();
   testServer();
+  /*
   testSignal();
   testMonitor();
   testUnicode();
