@@ -40,6 +40,7 @@ void testEvent();
 void testTime();
 void testSha256();
 void testMap();
+void testRefCount();
 
 void testConsolePrintf()
 {
@@ -592,6 +593,7 @@ int main(int argc, char* argv[])
   testJSON();
   */
   testEvent();
+  testRefCount();
 
   Console::printf(_T("%s\n"), _T("done"));
 
