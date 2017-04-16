@@ -1,6 +1,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <signal.h>
 #else
 #include <alloca.h>
 #include <unistd.h>
@@ -750,6 +751,26 @@ bool Process::setEnvironmentVariable(const String& name, const String& value)
   if(value.isEmpty())
     return unsetenv((const tchar*)name);
   return setenv((const tchar*)name, (const tchar*)value, 1) == 0;
+#endif
+}
+
+void Process::setSignalHandler(Signal signal, void (*handler)(int))
+{
+  int nativeSignal = 0;
+  switch(signal)
+  {
+    case intSignal: nativeSignal = SIGINT; break;
+    case illSignal: nativeSignal = SIGILL; break;
+    case fpeSignal: nativeSignal = SIGFPE; break;
+    case segvSignal: nativeSignal = SIGSEGV; break;
+    case termSignal: nativeSignal = SIGTERM; break;
+    case breakSignal: nativeSignal = SIGBREAK; break;
+    case abrtSignal: nativeSignal = SIGABRT; break;
+  }
+#ifdef _MSC_VER
+  ::signal(nativeSignal, handler);
+#else
+  ?? sigaction
 #endif
 }
 

@@ -63,6 +63,19 @@ public:
   static String getEnvironmentVariable(const String& name);
   static bool setEnvironmentVariable(const String& name, const String& value);
 
+  enum Signal
+  {
+    intSignal,
+    illSignal,
+    fpeSignal,
+    segvSignal,
+    termSignal,
+    breakSignal,
+    abrtSignal,
+  };
+
+  static void setSignalHandler(Signal signal, void (*handler)(int));
+
   static Process* wait(Process** processes, usize count);
   static void interrupt();
 
