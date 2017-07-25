@@ -10,6 +10,8 @@ void testStringStd(int iterations);
 void testStringNStd(int iterations);
 void testFutureStd(int iterations);
 void testFutureNStd(int iterations);
+void testFutureStd2(int iterations);
+void testFutureNStd2(int iterations);
 
 const int mapTestIterations = 1000000;
 
@@ -17,6 +19,24 @@ int main(int argc, char* argv[])
 {
   for (int i = 0; i < 3; ++i)
   {
+    /*
+    {
+      Console::printf(_T("testFutureStd2...  "));
+      int64 startTime = Time::microTicks();
+      testFutureStd2(mapTestIterations / (2 * 128));
+      int64 duration = Time::microTicks() - startTime;
+      Console::printf(_T("%lld microseconds\n"), duration);
+    }
+
+    {
+      Console::printf(_T("testFutureNStd2... "));
+      int64 startTime = Time::microTicks();
+      testFutureNStd2(mapTestIterations / (2 * 128));
+      int64 duration = Time::microTicks() - startTime;
+      Console::printf(_T("%lld microseconds\n"), duration);
+    }
+    return 0;
+
     {
       Console::printf(_T("testMapStd...  "));
       int64 startTime = Time::microTicks();
@@ -62,7 +82,7 @@ int main(int argc, char* argv[])
       int64 duration = Time::microTicks() - startTime;
       Console::printf(_T("%lld microseconds\n"), duration);
     }
-
+    */
     {
       Console::printf(_T("testFutureStd...  "));
       int64 startTime = Time::microTicks();
@@ -78,6 +98,7 @@ int main(int argc, char* argv[])
       int64 duration = Time::microTicks() - startTime;
       Console::printf(_T("%lld microseconds\n"), duration);
     }
+    return 0;
   }
 
   return 0;
